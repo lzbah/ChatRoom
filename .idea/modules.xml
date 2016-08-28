@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/ChatRoom.iml" filepath="$PROJECT_DIR$/ChatRoom.iml" />
+      <module fileurl="file://$PROJECT_DIR$/client/app.iml" filepath="$PROJECT_DIR$/client/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/connect_sdk/connect_sdk.iml" filepath="$PROJECT_DIR$/connect_sdk/connect_sdk.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nettyserver/nettyserver.iml" filepath="$PROJECT_DIR$/nettyserver/nettyserver.iml" />
+    </modules>
+  </component>
+</project>
