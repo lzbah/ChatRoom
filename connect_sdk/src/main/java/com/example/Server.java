@@ -3,7 +3,6 @@ package com.example;
 import java.util.Scanner;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -14,6 +13,10 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.protobuf.ProtobufDecoder;
+import io.netty.handler.codec.protobuf.ProtobufEncoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 
 public class Server {
 
@@ -48,6 +51,10 @@ public class Server {
     private class ServerChannelHandler extends ChannelInitializer<SocketChannel> {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
+            ch.pipeline().addLast(new ProtobufVarint32FrameDecoder());
+            ch.pipeline().addLast(new ProtobufDecoder(ImMessagePojo.IMMessage.getDefaultInstance()));
+            ch.pipeline().addLast(new ProtobufVarint32LengthFieldPrepender());
+            ch.pipeline().addLast(new ProtobufEncoder());
             ch.pipeline().addLast(new ServerMessageHandler());
         }
     }
@@ -58,10 +65,8 @@ public class Server {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            ByteBuf rec = (ByteBuf) msg;
-            byte[] recByte = new byte[rec.readableBytes()];
-            rec.readBytes(recByte);
-            String recStr = new String(recByte, "UTF-8");
+            ImMessagePojo.IMMessage imMessage = (ImMessagePojo.IMMessage) msg;
+            String recStr = imMessage.getBody();
             System.out.println("rec:" + recStr);
         }
 
@@ -74,10 +79,18 @@ public class Server {
                     while (true) {
                         Scanner s = new Scanner(System.in);
                         String getIn = s.nextLine();
-                        sendMsg(getIn);
+                        ImMessagePojo.IMMessage.Builder builder = ImMessagePojo.IMMessage.newBuilder();
+                        builder.setId(0);
+                        builder.setCmd("Message");
+                        builder.setBody(getIn);
+                        sendMsg(builder.build());
                     }
                 }
             }.start();
+        }
+
+        private void sendMsg(ImMessagePojo.IMMessage build) {
+            mCtx.writeAndFlush(build);
         }
 
         public void sendMsg(String i) {
@@ -91,7 +104,7 @@ public class Server {
     }
 
     public static void main(String[] args) {
-        int port = 8888;
+        int port = 8889;
         new Server().bind(port);
     }
 }
